@@ -6,6 +6,8 @@ src/index.tsx
 src/ZAxis.tsx
 public
 package-lock.json
+lib
+src/react-app-env.d.ts
 
 # dependencies
 /node_modules

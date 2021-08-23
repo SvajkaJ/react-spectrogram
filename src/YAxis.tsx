@@ -1,10 +1,6 @@
 import React from "react";
-import { SpectrogramYAxis } from "./Spectrogram";
 
-export interface YAxisProps extends SpectrogramYAxis {
-    width: number;
-    height: number;
-}
+import { YAxisProps } from "../index";
 
 const YAxis = React.memo<YAxisProps>(({
     width,
