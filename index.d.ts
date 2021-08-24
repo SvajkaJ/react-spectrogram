@@ -1,9 +1,13 @@
 import * as React from "react";
 
-export type SpectrogramDatum = {
-    x: Array<number | string | Date>;
-    y: Array<number>;
-    z: number | string | Date | null;
+export type SpectrogramDatumX = Array<number | string | Date>;
+export type SpectrogramDatumY = Array<number>;
+export type SpectrogramDatumZ = number | string | Date;
+
+export type SpectrogramData = {
+    x: SpectrogramDatumX;
+    y: SpectrogramDatumY;
+    z: SpectrogramDatumZ;
 };
 
 export type SpectrogramLayout = {
@@ -57,7 +61,7 @@ export type SpectrogramTheme = "white-red" | "white-green" | "white-blue" |
                            "black-white" | "white-black";
 
 export interface ISpectrogramProps {
-    data: SpectrogramDatum;
+    data: SpectrogramData;
     options: SpectrogramOptions;
     layout: SpectrogramLayout;
 }
@@ -70,10 +74,11 @@ export interface YAxisProps extends SpectrogramYAxis {
 export interface ZAxisProps {
     width: number;
     height: number;
-    label: string;
+    z: SpectrogramDatumZ;
     displayAxis: boolean;
     color?: string;
     max: number;
+    zAxisRef: React.MutableRefObject<number>;
 }
 
 declare const Spectrogram: React.FC<ISpectrogramProps>;

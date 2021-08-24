@@ -1,7 +1,7 @@
 import React from "react";
 
 import YAxis from "./YAxis";
-//import ZAxis from "./ZAxis";
+import ZAxis from "./ZAxis";
 
 import { ISpectrogramProps } from "../index";
 
@@ -19,7 +19,13 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
     const heatmapCanvasRef = React.useRef<HTMLCanvasElement>(null);
     const scaleCanvasRef = React.useRef<HTMLCanvasElement>(null);
 
-    const renderRef = React.useRef<number>(0);
+    // for debugging
+    const spectrogramRef = React.useRef<number>(0);
+    const zAxisRef = React.useRef<number>(0);
+
+    React.useEffect(() => {
+        spectrogramRef.current++;
+    });
 
     const minYScaleValue = options.yAxis.values[0];
     const maxYScaleValue = options.yAxis.values[options.yAxis.values.length - 1];
@@ -34,9 +40,6 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
 
     const lineContainerStyle: React.CSSProperties = {
         position: "relative"
-        /*display: "flex",
-        justifyContent: "flex-start",
-        alignItems: "center"*/
     };
 
     const heatmapContainerStyle: React.CSSProperties = {
@@ -213,68 +216,6 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
 
     }, [fillStyle, baseStyle])
 
-    React.useEffect(() => {
-        renderRef.current++;
-    });
-
-    /*const heatmapAxis: JSX.Element = React.useMemo(() => {
-        const w = leftAxisWidth;
-        const h = heatmap.height;
-        const t = 5;
-        const dz = heatmap.height / zScale.max;
-
-        let ticks: Array<JSX.Element> = [];
-        for (let zz = dz / 2; zz < heatmap.height; zz += dz) {
-            ticks.push(
-                <path key={zz} d={`M ${w},${zz} L ${w - t},${zz}`} />
-            );
-        }
-
-        return (
-            <>
-            <g fill="none" stroke="black">
-                <path d={`M ${w},0 L ${w},${h}`} />
-                {ticks}
-            </g>
-            <g fill="none" stroke="black"></g>
-            </>
-        );
-    }, [heatmap.height, leftAxisWidth, zScale]);*/
-
-    // on every change of data.z update zScale
-    /*React.useEffect(() => {
-        const updateZScale = () => {
-            const svg = heatmapScaleRef.current;
-            if (svg === null) return false;
-
-            // move every text down
-            const node = new SVGTextElement()
-            svg.lastChild?.appendChild(node)
-
-            const elements = svg.lastChild!.childNodes;
-            
-            console.log(elements.length);
-        };
-
-        updateZScale();
-    }, [data.z]);*/
-
-    let label: string = "";
-    switch(typeof data.z) {
-        case "number":
-            label = data.z.toLocaleString();
-            break;
-        case "string":
-            label = data.z;
-            break;
-        case "object":
-            label = data.z ? `${data.z.getSeconds()}:${data.z.getMilliseconds()}` : "";
-            break;
-        default:
-            label = "";
-            break;
-    }
-
     return (
         <div style={containerStyle}>
         <div style={lineContainerStyle}>
@@ -288,15 +229,7 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             ></canvas>
         </div>
         <div style={heatmapContainerStyle}>
-            {/* <ZAxis {...options.zAxis} label={label} width={layout.width} height={layout.heatmap.height} /> */}
-            {/* <svg
-                id="heatmapScale"
-                ref={heatmapScaleRef}
-                width={leftAxisWidth}
-                height={heatmap.height}
-            >
-                {heatmapAxis}
-            </svg> */}
+            <ZAxis zAxisRef={zAxisRef} {...options.zAxis} z={data.z} width={layout.width} height={layout.heatmap.height} />
             <canvas
                 id="heatmapChart"
                 ref={heatmapCanvasRef}
@@ -316,7 +249,7 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             ></canvas>
             <span style={{ paddingLeft: "0.5em" }}>{maxYScaleValue}</span>
         </div>
-        <p>{renderRef.current}</p>
+        <p>{spectrogramRef.current} | {zAxisRef.current}</p>
         </div>
     );
 };

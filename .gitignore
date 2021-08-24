@@ -3,11 +3,11 @@
 src/styles
 src/App.tsx
 src/index.tsx
-src/ZAxis.tsx
 public
 package-lock.json
 lib
 src/react-app-env.d.ts
+t.txt
 
 # dependencies
 /node_modules
