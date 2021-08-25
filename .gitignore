@@ -10,6 +10,7 @@ rollup.config.js
 lib
 test
 build_tsconfig.json
+build_package.json
 .npmignore
 
 # dependencies
