@@ -1,15 +1,22 @@
 import React from "react";
 
-import { SpectrogramDatumZ, ZAxisProps } from "../index";
+import { SpectrogramDatumZ, SpectrogramZAxis } from "../index";
+
+interface ZAxisProps extends SpectrogramZAxis {
+    width: number;
+    height: number;
+    z: SpectrogramDatumZ;
+    zAxisRef: React.MutableRefObject<number>;
+}
 
 const ZAxis: React.FC<ZAxisProps> = ({
     width,
     height,
     z,
-    displayAxis = true,
+    zAxisRef,
     max,
+    displayAxis = true,
     color = "black",
-    zAxisRef
 }) => {
     const axisLabelsRef = React.useRef<Array<SpectrogramDatumZ>>([]);
     const [axisLabels, setAxisLabels] = React.useState<Array<JSX.Element>>([]);
@@ -29,7 +36,7 @@ const ZAxis: React.FC<ZAxisProps> = ({
         let axisLines: Array<JSX.Element> = [];
         pos.forEach((v, i) => {
             axisLines.push(
-                <path key={v} d={`M ${w - t},${v} L ${w},${v}`} stroke-width={4 * strokeWidth} />
+                <path key={v} d={`M ${w - t},${v} L ${w},${v}`} />
             );
         });
         return axisLines;
@@ -76,7 +83,7 @@ const ZAxis: React.FC<ZAxisProps> = ({
     // width and height of zAxis is irrelevant because it is positioned abolutely
     return (
         <svg id="zAxis" overflow="visible" style={{ position: "absolute", left: -w }}>
-            <g fill={color} stroke={color}>{axisLines}</g>
+            <g fill={color} stroke={color} stroke-width={4 * strokeWidth}>{axisLines}</g>
             <g fill={color} stroke={color}>{axisLabels}</g>
         </svg>
     );

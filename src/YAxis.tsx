@@ -1,6 +1,11 @@
 import React from "react";
 
-import { YAxisProps } from "../index";
+import { SpectrogramYAxis } from "../index";
+
+interface YAxisProps extends SpectrogramYAxis {
+    width: number;
+    height: number;
+}
 
 const YAxis = React.memo<YAxisProps>(({
     width,
@@ -28,7 +33,7 @@ const YAxis = React.memo<YAxisProps>(({
     pos.forEach((v, i) => {
         if (displayGrid) {
             gridLines.push(
-                <path key={v} d={`M ${w},${v} L ${width + w},${v}`} stroke-width={strokeWidth} />
+                <path key={v} d={`M ${w},${v} L ${width + w},${v}`} />
             );
         }
         if (displayAxis) {
@@ -36,7 +41,7 @@ const YAxis = React.memo<YAxisProps>(({
                 <text key={v} text-anchor="end" x={w - 2*t} y={v + 5}>{values[i]}</text>
             );
             axisLines.push(
-                <path key={v} d={`M ${w - t},${v} L ${w},${v}`} stroke-width={4 * strokeWidth} />
+                <path key={v} d={`M ${w - t},${v} L ${w},${v}`} />
             );
         }
     });
@@ -44,8 +49,8 @@ const YAxis = React.memo<YAxisProps>(({
     // width and height of yAxis is irrelevant because it is positioned abolutely
     return (
         <svg id="yAxis" overflow="visible" style={{ position: "absolute", left: -w }}>
-            <g fill={color} stroke={color}>{gridLines}</g>
-            <g fill={color} stroke={color}>{axisLines}</g>
+            <g fill={color} stroke={color} stroke-width={strokeWidth}>{gridLines}</g>
+            <g fill={color} stroke={color} stroke-width={4 * strokeWidth}>{axisLines}</g>
             <g fill={color} stroke={color}>{axisLabels}</g>
         </svg>
     );

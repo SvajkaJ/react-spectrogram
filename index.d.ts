@@ -24,8 +24,14 @@ export type SpectrogramLayout = {
     };
     scale: {
         height: number;
-        width: number;
     };
+};
+
+export type SpectrogramXAxis = {
+    values: Array<number | string | Date>;
+    displayAxis?: boolean;
+    displayGrid?: boolean;
+    color?: string;
 };
 
 export type SpectrogramYAxis = {
@@ -35,19 +41,16 @@ export type SpectrogramYAxis = {
     color?: string;
 };
 
+export type SpectrogramZAxis = {
+    max: number;
+    displayAxis?: boolean;
+    color?: string;
+};
+
 export type SpectrogramOptions = {
-    xAxis: {
-        displayAxis: boolean;
-        displayGrid: boolean;
-        values: Array<number | string | Date>;
-        color?: string;
-    };
+    xAxis: SpectrogramXAxis;
     yAxis: SpectrogramYAxis;
-    zAxis: {
-        displayAxis: boolean;
-        max: number;
-        color?: string;
-    };
+    zAxis: SpectrogramZAxis;
     line?: {
         lineWidth?: number;
         lineCap?: CanvasLineCap;
@@ -57,8 +60,7 @@ export type SpectrogramOptions = {
 };
 
 export type SpectrogramTheme = "white-red" | "white-green" | "white-blue" |
-                           "black-red" | "black-green" | "black-blue" |
-                           "black-white" | "white-black";
+    "black-red" | "black-green" | "black-blue" | "black-white" | "white-black";
 
 export interface ISpectrogramProps {
     data: SpectrogramData;
@@ -66,23 +68,11 @@ export interface ISpectrogramProps {
     layout: SpectrogramLayout;
 }
 
-export interface YAxisProps extends SpectrogramYAxis {
-    width: number;
-    height: number;
-}
-
-export interface ZAxisProps {
-    width: number;
-    height: number;
-    z: SpectrogramDatumZ;
-    displayAxis: boolean;
-    color?: string;
-    max: number;
-    zAxisRef: React.MutableRefObject<number>;
-}
-
+/**
+ * The only prop that should change is data prop.
+ * Dynamically changing any other props could lead
+ * to unwanted results.
+ */
 declare const Spectrogram: React.FC<ISpectrogramProps>;
-
-declare const YAxis: React.NamedExoticComponent<YAxisProps>;
 
 export default Spectrogram;

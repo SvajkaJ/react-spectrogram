@@ -1,15 +1,11 @@
 import React from "react";
 
+import XAxis from "./XAxis";
 import YAxis from "./YAxis";
 import ZAxis from "./ZAxis";
 
 import { ISpectrogramProps } from "../index";
 
-/**
- * The only prop that should change is data prop.
- * Dynamically changing any other props could lead
- * to unwanted results.
- */
 const Spectrogram: React.FC<ISpectrogramProps> = ({
     data,
     layout,
@@ -17,7 +13,6 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
 }) => {
     const lineCanvasRef = React.useRef<HTMLCanvasElement>(null);
     const heatmapCanvasRef = React.useRef<HTMLCanvasElement>(null);
-    const scaleCanvasRef = React.useRef<HTMLCanvasElement>(null);
 
     // for debugging
     const spectrogramRef = React.useRef<number>(0);
@@ -31,7 +26,6 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
     const maxYScaleValue = options.yAxis.values[options.yAxis.values.length - 1];
 
     const containerStyle: React.CSSProperties = {
-        backgroundColor: "palegoldenrod",
         paddingTop: layout?.paddingTop,
         paddingRight: layout?.paddingRight,
         paddingBottom: layout?.paddingBottom,
@@ -43,13 +37,12 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
     };
 
     const heatmapContainerStyle: React.CSSProperties = {
-        position: "relative"
+        position: "relative",
+        marginTop: 16
     };
 
-    const scaleContainerStyle: React.CSSProperties = {
-        width: layout.width,
-        display: "flex",
-        justifyContent: "center"
+    const heatmapCanvasStyle: React.CSSProperties = {
+        
     };
 
     const canvasStyle: React.CSSProperties = {
@@ -192,7 +185,7 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
     }, [data, fillStyle, baseStyle]);
 
     // Draw scale
-    React.useEffect(() => {
+    /*React.useEffect(() => {
         const drawScale = (): boolean => {
             const canvas = scaleCanvasRef.current;
             if (canvas === null) return false;
@@ -214,7 +207,22 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
 
         drawScale();
 
-    }, [fillStyle, baseStyle])
+    }, [fillStyle, baseStyle]);*/
+
+    const yScale: JSX.Element = (
+        <svg width={layout.width} height={layout.scale.height} overflow="visible">
+            <defs>
+                <linearGradient id="linearGradient">
+                    <stop offset="0%" stop-color={fillStyle(0)} />
+                    <stop offset="100%" stop-color={fillStyle(baseStyle())} />
+                </linearGradient>
+            </defs>
+            <rect fill="url('#linearGradient')" width={layout.width} height={layout.scale.height} />
+
+            <text x={5} y={layout.scale.height - (layout.scale.height - 11) / 2} fill={fillStyle(baseStyle())} stroke={fillStyle(baseStyle())} textAnchor="start">{minYScaleValue}</text>
+            <text x={layout.width - 5} y={layout.scale.height - (layout.scale.height - 11) / 2} fill={fillStyle(0)} stroke={fillStyle(0)} textAnchor="end">{maxYScaleValue}</text>
+        </svg>
+    );
 
     return (
         <div style={containerStyle}>
@@ -235,20 +243,11 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
                 ref={heatmapCanvasRef}
                 width={layout.width}
                 height={layout.heatmap.height}
-                style={{ ...canvasStyle, backgroundColor: "red", marginTop: 16 }}
+                style={{ ...canvasStyle, ...heatmapCanvasStyle }}
             >Your browser does not support &lt;canvas&gt; tag element!</canvas>
+            <XAxis {...options.xAxis} width={layout.width} height={layout.heatmap.height} />
         </div>
-        <div style={scaleContainerStyle}>
-            <span style={{ paddingRight: "0.5em" }}>{minYScaleValue}</span>
-            <canvas
-                id="scaleChart"
-                ref={scaleCanvasRef}
-                width={layout.scale.width}
-                height={layout.scale.height}
-                style={{ ...canvasStyle }}
-            ></canvas>
-            <span style={{ paddingLeft: "0.5em" }}>{maxYScaleValue}</span>
-        </div>
+        {yScale}
         <p>{spectrogramRef.current} | {zAxisRef.current}</p>
         </div>
     );
