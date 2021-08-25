@@ -1,8 +1,11 @@
 {
   "name": "react-spectrogram",
-  "version": "0.1.0",
-  "description": "React component abstracting visual representation of the spectrum of frequencies of a signal that varies with time - Spectrogram.",
-  "author": "Jakub Švajka <jakub.svajka98@gmail.com>",
+  "version": "0.1.1",
+  "description": "React component that visualizes the spectrum of frequencies of a signal that varies with time - Spectrogram.",
+  "author": {
+      "name": "Jakub Švajka",
+      "email": "jakub.svajka98@gmail.com"
+  },
   "license": "MIT",
   "keywords": [
     "typescript",
@@ -19,7 +22,10 @@
     "url": "https://github.com/SvajkaJ/react-spectrogram/issues"
   },
   "private": false,
-  "dependencies": {
+  "main": "build/index.js",
+  "module": "build/index.es.js",
+  "files": ["build", "index.d.ts"],
+  "peerDependencies": {
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
   },

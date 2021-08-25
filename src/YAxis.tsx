@@ -1,6 +1,6 @@
 import React from "react";
 
-import { SpectrogramYAxis } from "./Spectrogram.types";
+import { SpectrogramYAxis } from "../index";
 
 interface YAxisProps extends SpectrogramYAxis {
     width: number;

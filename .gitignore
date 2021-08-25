@@ -1,16 +1,9 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-src/App.tsx
-src/index.tsx
-public
 package-lock.json
 src/react-app-env.d.ts
 rollup.config.js
 .babelrc
-lib
-test
-build_tsconfig.json
-build_package.json
 .npmignore
 
 # dependencies

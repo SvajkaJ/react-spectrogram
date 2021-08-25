@@ -4,7 +4,8 @@ import XAxis from "./XAxis";
 import YAxis from "./YAxis";
 import ZAxis from "./ZAxis";
 
-import { ISpectrogramProps } from "./Spectrogram.types";
+import { ISpectrogramProps } from "../index";
+
 
 const Spectrogram: React.FC<ISpectrogramProps> = ({
     data,

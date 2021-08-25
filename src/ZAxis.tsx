@@ -1,6 +1,6 @@
 import React from "react";
 
-import { SpectrogramDatumZ, SpectrogramZAxis } from "./Spectrogram.types";
+import { SpectrogramDatumZ, SpectrogramZAxis } from "../index";
 
 interface ZAxisProps extends SpectrogramZAxis {
     width: number;
