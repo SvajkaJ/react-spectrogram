@@ -1,5 +1,3 @@
-import * as React from "react";
-
 export type SpectrogramDatumX = Array<number | string | Date>;
 export type SpectrogramDatumY = Array<number>;
 export type SpectrogramDatumZ = number | string | Date;
@@ -47,6 +45,9 @@ export type SpectrogramZAxis = {
     color?: string;
 };
 
+export type SpectrogramTheme = "white-red" | "white-green" | "white-blue" |
+    "black-red" | "black-green" | "black-blue" | "black-white" | "white-black";
+
 export type SpectrogramOptions = {
     xAxis: SpectrogramXAxis;
     yAxis: SpectrogramYAxis;
@@ -59,20 +60,8 @@ export type SpectrogramOptions = {
     theme?: SpectrogramTheme;
 };
 
-export type SpectrogramTheme = "white-red" | "white-green" | "white-blue" |
-    "black-red" | "black-green" | "black-blue" | "black-white" | "white-black";
-
 export interface ISpectrogramProps {
     data: SpectrogramData;
     options: SpectrogramOptions;
     layout: SpectrogramLayout;
 }
-
-/**
- * The only prop that should change is data prop.
- * Dynamically changing any other props could lead
- * to unwanted results.
- */
-declare const Spectrogram: React.FC<ISpectrogramProps>;
-
-export default Spectrogram;
