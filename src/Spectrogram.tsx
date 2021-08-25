@@ -184,31 +184,6 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
         }
     }, [data, fillStyle, baseStyle]);
 
-    // Draw scale
-    /*React.useEffect(() => {
-        const drawScale = (): boolean => {
-            const canvas = scaleCanvasRef.current;
-            if (canvas === null) return false;
-            const ctx = canvas.getContext("2d");
-            if (ctx === null) return false;
-
-            const scaleMidd = Math.floor(canvas.width / 2);
-            const scaleBase = baseStyle() + 1;
-            const dx = 2;
-            const dw = dx * scaleBase / 2;
-
-            for (let i = 0; i < scaleBase; i++) {
-                ctx.fillStyle = fillStyle(i);
-                ctx.fillRect(scaleMidd - dw + i * dx, 0, dx, canvas.height);
-            }
-
-            return true;
-        };
-
-        drawScale();
-
-    }, [fillStyle, baseStyle]);*/
-
     const yScale: JSX.Element = (
         <svg width={layout.width} height={layout.scale.height} overflow="visible">
             <defs>
