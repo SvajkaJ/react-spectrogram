@@ -1,5 +1,3 @@
-import React from "react";
-
 export type SpectrogramDatumX = Array<number | string | Date>;
 export type SpectrogramDatumY = Array<number>;
 export type SpectrogramDatumZ = number | string | Date;
@@ -58,4 +56,3 @@ export interface ISpectrogramProps {
     options: SpectrogramOptions;
     layout: SpectrogramLayout;
 }
-export const Spectrogram: React.FC<ISpectrogramProps>;

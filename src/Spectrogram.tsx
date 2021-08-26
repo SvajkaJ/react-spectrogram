@@ -1,11 +1,9 @@
 import React from "react";
 
-import XAxis from "./XAxis";
-import YAxis from "./YAxis";
-import ZAxis from "./ZAxis";
-
-import { ISpectrogramProps } from "../index";
-
+import { ISpectrogramProps } from "./Spectrogram.types";
+import { SpectrogramXAxis } from "./Spectrogram.types";
+import { SpectrogramYAxis } from "./Spectrogram.types";
+import { SpectrogramDatumZ, SpectrogramZAxis } from "./Spectrogram.types";
 
 const Spectrogram: React.FC<ISpectrogramProps> = ({
     data,
@@ -14,14 +12,6 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
 }) => {
     const lineCanvasRef = React.useRef<HTMLCanvasElement>(null);
     const heatmapCanvasRef = React.useRef<HTMLCanvasElement>(null);
-
-    // for debugging
-    const spectrogramRef = React.useRef<number>(0);
-    const zAxisRef = React.useRef<number>(0);
-
-    React.useEffect(() => {
-        spectrogramRef.current++;
-    });
 
     const minYScaleValue = options.yAxis.values[0];
     const maxYScaleValue = options.yAxis.values[options.yAxis.values.length - 1];
@@ -213,7 +203,7 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             ></canvas>
         </div>
         <div style={heatmapContainerStyle}>
-            <ZAxis zAxisRef={zAxisRef} {...options.zAxis} z={data.z} width={layout.width} height={layout.heatmap.height} />
+            <ZAxis {...options.zAxis} z={data.z} width={layout.width} height={layout.heatmap.height} />
             <canvas
                 id="heatmapChart"
                 ref={heatmapCanvasRef}
@@ -224,8 +214,194 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             <XAxis {...options.xAxis} width={layout.width} height={layout.heatmap.height} />
         </div>
         {yScale}
-        <p>{spectrogramRef.current} | {zAxisRef.current}</p>
         </div>
+    );
+};
+
+interface XAxisProps extends SpectrogramXAxis {
+    width: number;
+    height: number;
+}
+
+const XAxis = React.memo<XAxisProps>(({
+    width,
+    height,
+    values,
+    displayAxis = true,
+    displayGrid = true,
+    color = "black"
+}) => {
+    if (!displayAxis && !displayGrid) return (<></>);
+
+    const strokeWidth = 0.25;
+    const h = 48;    // svg height
+    const t = 5;     // tick size
+
+    const dx = width / values.length;
+    const pos = Array.from(Array(values.length), (v, i) => {
+        return i * dx + width / 128;
+    });
+
+    let gridLines: Array<JSX.Element> = [];
+    let axisLabels: JSX.Element[] = [];
+    let axisLines: JSX.Element[] = [];
+    pos.forEach((v, i) => {
+        if (displayAxis) {
+            axisLabels.push(
+                <text key={v} x={v} y={t + 15} text-anchor="middle">{values[i].toString()}</text>
+            );
+            axisLines.push(
+                <path key={v} d={`M ${v},0 L ${v},${t}`} />
+            );
+        }
+    });
+
+    return (
+        <svg
+            id="xAxis"
+            width={width}
+            height={h}
+        >
+            <g fill={color} stroke={color} stroke-width={4 * strokeWidth}>{axisLines}</g>
+            <g fill={color} stroke={color}>{axisLabels}</g>
+        </svg>
+    );
+});
+
+interface YAxisProps extends SpectrogramYAxis {
+    width: number;
+    height: number;
+}
+
+const YAxis = React.memo<YAxisProps>(({
+    width,
+    height,
+    values,
+    displayAxis = true,
+    displayGrid = true,
+    color = "black"
+}) => {
+    if (!displayAxis && !displayGrid) return (<></>);
+
+    const strokeWidth = 0.25;
+    const w = 30;    // svg width
+    const t = 5;     // tick width
+    const m = values[values.length - 1];
+
+    const pos: Array<number> = values.map((v) => {
+        return Math.floor(height - v * height / m);
+    });
+
+    // create paths and texts
+    let gridLines: Array<JSX.Element> = [];
+    let axisLines: Array<JSX.Element> = [];
+    let axisLabels: Array<JSX.Element> = [];
+    pos.forEach((v, i) => {
+        if (displayGrid) {
+            gridLines.push(
+                <path key={v} d={`M ${w},${v} L ${width + w},${v}`} />
+            );
+        }
+        if (displayAxis) {
+            axisLabels.push(
+                <text key={v} text-anchor="end" x={w - 2*t} y={v + 5}>{values[i]}</text>
+            );
+            axisLines.push(
+                <path key={v} d={`M ${w - t},${v} L ${w},${v}`} />
+            );
+        }
+    });
+
+    // width and height of yAxis is irrelevant because it is positioned abolutely
+    return (
+        <svg id="yAxis" overflow="visible" style={{ position: "absolute", left: -w }}>
+            <g fill={color} stroke={color} stroke-width={strokeWidth}>{gridLines}</g>
+            <g fill={color} stroke={color} stroke-width={4 * strokeWidth}>{axisLines}</g>
+            <g fill={color} stroke={color}>{axisLabels}</g>
+        </svg>
+    );
+});
+
+interface ZAxisProps extends SpectrogramZAxis {
+    width: number;
+    height: number;
+    z: SpectrogramDatumZ;
+}
+
+const ZAxis: React.FC<ZAxisProps> = ({
+    width,
+    height,
+    z,
+    max,
+    displayAxis = true,
+    color = "black",
+}) => {
+    const axisLabelsRef = React.useRef<Array<SpectrogramDatumZ>>([]);
+    const [axisLabels, setAxisLabels] = React.useState<Array<JSX.Element>>([]);
+
+    const strokeWidth = 0.25;
+    const w = 30;    // svg width
+    const t = 5;     // tick width
+
+    const pos = React.useMemo(() => {
+        const dz = height / max;
+        return Array.from(Array(max), (v, i) => {
+            return i * dz + dz / 2;
+        });
+    }, [height, max]);
+
+    const axisLines = React.useMemo(() => {
+        let axisLines: Array<JSX.Element> = [];
+        pos.forEach((v, i) => {
+            axisLines.push(
+                <path key={v} d={`M ${w - t},${v} L ${w},${v}`} />
+            );
+        });
+        return axisLines;
+    }, [pos, strokeWidth, w, t]);
+
+    // on new z value recreate all <text> labels
+    React.useEffect(() => {
+        if (axisLabelsRef.current.length < max) {
+            axisLabelsRef.current.unshift(z);
+        }
+        else {
+            axisLabelsRef.current.pop();
+            axisLabelsRef.current.unshift(z);
+        }
+
+        let labels: Array<JSX.Element> = [];
+        axisLabelsRef.current.forEach((l, i) => {
+            switch(typeof l) {
+                case "object":
+                    labels.push(
+                        <text key={`${i}-${l.toLocaleTimeString()}`} text-anchor="end" x={w - 2 * t} y={pos[i] + 5}>{l.toLocaleTimeString()}</text>
+                    );
+                    break;
+                case "string":
+                    labels.push(
+                        <text key={`${i}-${l}`} text-anchor="end" x={w - 2 * t} y={pos[i] + 5}>{l}</text>
+                    );
+                    break;
+                case "number":
+                    labels.push(
+                        <text key={`${i}-${l.toLocaleString()}`} text-anchor="end" x={w - 2 * t} y={pos[i] + 5}>{l.toLocaleString()}</text>
+                    );
+                    break;
+                default:
+                    break;
+            }
+        });
+        setAxisLabels(labels);
+    }, [z]);
+
+    if (!displayAxis) return (<></>);
+    // width and height of zAxis is irrelevant because it is positioned abolutely
+    return (
+        <svg id="zAxis" overflow="visible" style={{ position: "absolute", left: -w }}>
+            <g fill={color} stroke={color} stroke-width={4 * strokeWidth}>{axisLines}</g>
+            <g fill={color} stroke={color}>{axisLabels}</g>
+        </svg>
     );
 };
 
