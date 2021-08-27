@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ISpectrogramProps } from "./Spectrogram.types";
+import { ISpectrogramProps, SpectrogramDatumX } from "./Spectrogram.types";
 import { SpectrogramXAxis } from "./Spectrogram.types";
 import { SpectrogramYAxis } from "./Spectrogram.types";
 import { SpectrogramDatumZ, SpectrogramZAxis } from "./Spectrogram.types";
@@ -29,7 +29,7 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
 
     const heatmapContainerStyle: React.CSSProperties = {
         position: "relative",
-        marginTop: 16
+        marginTop: layout.heatmap.marginTop
     };
 
     const heatmapCanvasStyle: React.CSSProperties = {
@@ -38,6 +38,10 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
 
     const canvasStyle: React.CSSProperties = {
         display: "block"
+    };
+
+    const scaleContainerStyle: React.CSSProperties = {
+
     };
 
     // util function
@@ -122,9 +126,9 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             ctx.strokeStyle = fillStyle(baseStyle());
-            ctx.lineWidth = options.line?.lineWidth || 1;
-            ctx.lineCap = options.line?.lineCap || "round";
-            ctx.lineJoin = options.line?.lineJoin || "round";
+            ctx.lineWidth = 1;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
 
             ctx.beginPath();
             ctx.moveTo(x, (maxYScaleValue - data[0]) * dk);
@@ -147,7 +151,7 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             // https://stackoverflow.com/questions/58136632/fillrect-not-overlapping-exactly-when-float-numbers-are-used
             // https://html5rocks.com/en/tutorials/canvas/performance/#toc-avoid-float
             const dx = canvas.width / data.length;
-            const dy = layout.heatmap.height / options.zAxis.max;
+            const dy = layout.heatmap.height / options.zAxis.displayBins;
             let x = 0;
 
             /**
@@ -173,22 +177,45 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             drawLine(data.y);
             drawHeatmap(data.y);
         }
+    // Deliberatly missing dependencies: 'layout.heatmap.height', 'maxYScaleValue', and 'options.zAxis.displayBins'.
+    // eslint-disable-next-line
     }, [data, fillStyle, baseStyle]);
 
-    const yScale: JSX.Element = (
-        <svg width={layout.width} height={layout.scale.height} overflow="visible">
-            <defs>
-                <linearGradient id="linearGradient">
-                    <stop offset="0%" stop-color={fillStyle(0)} />
-                    <stop offset="100%" stop-color={fillStyle(baseStyle())} />
-                </linearGradient>
-            </defs>
-            <rect fill="url('#linearGradient')" width={layout.width} height={layout.scale.height} />
-
-            <text x={5} y={layout.scale.height - (layout.scale.height - 11) / 2} fill={fillStyle(baseStyle())} stroke={fillStyle(baseStyle())} textAnchor="start">{minYScaleValue}</text>
-            <text x={layout.width - 5} y={layout.scale.height - (layout.scale.height - 11) / 2} fill={fillStyle(0)} stroke={fillStyle(0)} textAnchor="end">{maxYScaleValue}</text>
-        </svg>
-    );
+    const yScale: JSX.Element = React.useMemo(() => {
+        const Xoffset = 5;
+        const Yoffset = 16;
+        const scaleStyle: React.CSSProperties = {
+            marginTop: layout.scale.marginTop,
+            borderWidth: 1,
+            borderStyle: "solid",
+            borderColor: "black"
+        };
+        return (
+            <svg width={layout.width} height={layout.scale.height} overflow="visible" style={scaleStyle}>
+                <defs>
+                    <linearGradient id="linearGradient">
+                        <stop offset="0%" stop-color={fillStyle(0)} />
+                        <stop offset="100%" stop-color={fillStyle(baseStyle())} />
+                    </linearGradient>
+                </defs>
+                <rect fill="url('#linearGradient')" width={layout.width} height={layout.scale.height} />
+                <text
+                    x={Xoffset}
+                    y={layout.scale.height + Yoffset}
+                    fill="black"
+                    stroke="black"
+                    textAnchor="start"
+                >{minYScaleValue}</text>
+                <text
+                    x={layout.width - Xoffset}
+                    y={layout.scale.height + Yoffset}
+                    fill="black"
+                    stroke="black"
+                    textAnchor="end"
+                >{maxYScaleValue}</text>
+            </svg>
+        );
+    }, [layout, fillStyle, baseStyle, minYScaleValue, maxYScaleValue]);
 
     return (
         <div style={containerStyle}>
@@ -201,6 +228,12 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
                 height={layout.line.height}
                 style={{ ...canvasStyle }}
             ></canvas>
+            <XAxis
+                {...options.xAxis}
+                width={layout.width}
+                height={layout.line.height}
+                x={data.x}
+            />
         </div>
         <div style={heatmapContainerStyle}>
             <ZAxis {...options.zAxis} z={data.z} width={layout.width} height={layout.heatmap.height} />
@@ -211,9 +244,17 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
                 height={layout.heatmap.height}
                 style={{ ...canvasStyle, ...heatmapCanvasStyle }}
             >Your browser does not support &lt;canvas&gt; tag element!</canvas>
-            <XAxis {...options.xAxis} width={layout.width} height={layout.heatmap.height} />
+            <XAxis
+                {...options.xAxis}
+                width={layout.width}
+                height={layout.heatmap.height}
+                x={data.x}
+                displayGrid={false}
+            />
         </div>
-        {yScale}
+        <div style={scaleContainerStyle}>
+            {yScale}
+        </div>
         </div>
     );
 };
@@ -221,12 +262,14 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
 interface XAxisProps extends SpectrogramXAxis {
     width: number;
     height: number;
+    x: SpectrogramDatumX;
 }
 
 const XAxis = React.memo<XAxisProps>(({
     width,
     height,
     values,
+    x,
     displayAxis = true,
     displayGrid = true,
     color = "black"
@@ -234,21 +277,28 @@ const XAxis = React.memo<XAxisProps>(({
     if (!displayAxis && !displayGrid) return (<></>);
 
     const strokeWidth = 0.25;
-    const h = 48;    // svg height
     const t = 5;     // tick size
 
-    const dx = width / values.length;
-    const pos = Array.from(Array(values.length), (v, i) => {
-        return i * dx + width / 128;
+    const dx = width / x.length;
+    let pos: Array<number> = [];
+    x.forEach((v, i) => {
+        if (values.includes(v)) {
+            pos.push(i * dx + dx / 2);
+        }
     });
 
     let gridLines: Array<JSX.Element> = [];
     let axisLabels: JSX.Element[] = [];
     let axisLines: JSX.Element[] = [];
     pos.forEach((v, i) => {
+        if (displayGrid) {
+            gridLines.push(
+                <path key={v} d={`M ${v},${0} L ${v},${-height}`} />
+            );
+        }
         if (displayAxis) {
             axisLabels.push(
-                <text key={v} x={v} y={t + 15} text-anchor="middle">{values[i].toString()}</text>
+                <text key={v} x={v} y={t + 15} textAnchor="middle">{values[i].toString()}</text>
             );
             axisLines.push(
                 <path key={v} d={`M ${v},0 L ${v},${t}`} />
@@ -260,9 +310,12 @@ const XAxis = React.memo<XAxisProps>(({
         <svg
             id="xAxis"
             width={width}
-            height={h}
+            height={10}
+            style={{ position: "absolute", left: 0, top: height}}
+            overflow="visible"
         >
-            <g fill={color} stroke={color} stroke-width={4 * strokeWidth}>{axisLines}</g>
+            <g fill={color} stroke={color} strokeWidth={strokeWidth}>{gridLines}</g>
+            <g fill={color} stroke={color} strokeWidth={4 * strokeWidth}>{axisLines}</g>
             <g fill={color} stroke={color}>{axisLabels}</g>
         </svg>
     );
@@ -315,8 +368,8 @@ const YAxis = React.memo<YAxisProps>(({
     // width and height of yAxis is irrelevant because it is positioned abolutely
     return (
         <svg id="yAxis" overflow="visible" style={{ position: "absolute", left: -w }}>
-            <g fill={color} stroke={color} stroke-width={strokeWidth}>{gridLines}</g>
-            <g fill={color} stroke={color} stroke-width={4 * strokeWidth}>{axisLines}</g>
+            <g fill={color} stroke={color} strokeWidth={strokeWidth}>{gridLines}</g>
+            <g fill={color} stroke={color} strokeWidth={4 * strokeWidth}>{axisLines}</g>
             <g fill={color} stroke={color}>{axisLabels}</g>
         </svg>
     );
@@ -332,7 +385,7 @@ const ZAxis: React.FC<ZAxisProps> = ({
     width,
     height,
     z,
-    max,
+    displayBins,
     displayAxis = true,
     color = "black",
 }) => {
@@ -344,11 +397,11 @@ const ZAxis: React.FC<ZAxisProps> = ({
     const t = 5;     // tick width
 
     const pos = React.useMemo(() => {
-        const dz = height / max;
-        return Array.from(Array(max), (v, i) => {
+        const dz = height / displayBins;
+        return Array.from(Array(displayBins), (v, i) => {
             return i * dz + dz / 2;
         });
-    }, [height, max]);
+    }, [height, displayBins]);
 
     const axisLines = React.useMemo(() => {
         let axisLines: Array<JSX.Element> = [];
@@ -358,11 +411,11 @@ const ZAxis: React.FC<ZAxisProps> = ({
             );
         });
         return axisLines;
-    }, [pos, strokeWidth, w, t]);
+    }, [pos, w, t]);
 
     // on new z value recreate all <text> labels
     React.useEffect(() => {
-        if (axisLabelsRef.current.length < max) {
+        if (axisLabelsRef.current.length < displayBins) {
             axisLabelsRef.current.unshift(z);
         }
         else {
@@ -393,6 +446,8 @@ const ZAxis: React.FC<ZAxisProps> = ({
             }
         });
         setAxisLabels(labels);
+    // Deliberatly missing dependencies: 'displayBins' and 'pos'.
+    // eslint-disable-next-line
     }, [z]);
 
     if (!displayAxis) return (<></>);

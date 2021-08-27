@@ -17,9 +17,11 @@ export type SpectrogramLayout = {
     };
     heatmap: {
         height: number;
+        marginTop: number;
     };
     scale: {
         height: number;
+        marginTop: number;
     };
 };
 export type SpectrogramXAxis = {
@@ -35,7 +37,7 @@ export type SpectrogramYAxis = {
     color?: string;
 };
 export type SpectrogramZAxis = {
-    max: number;
+    displayBins: number;
     displayAxis?: boolean;
     color?: string;
 };
@@ -44,11 +46,6 @@ export type SpectrogramOptions = {
     xAxis: SpectrogramXAxis;
     yAxis: SpectrogramYAxis;
     zAxis: SpectrogramZAxis;
-    line?: {
-        lineWidth?: number;
-        lineCap?: CanvasLineCap;
-        lineJoin?: CanvasLineJoin;
-    };
     theme?: SpectrogramTheme;
 };
 export interface ISpectrogramProps {
