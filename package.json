@@ -8,10 +8,11 @@
   },
   "license": "MIT",
   "keywords": [
-    "typescript",
     "spectrogram",
+    "heatmap",
+    "waterfall",
     "canvas",
-    "spectogram",
+    "typescript",
     "react"
   ],
   "repository": {

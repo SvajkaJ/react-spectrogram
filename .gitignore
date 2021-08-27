@@ -2,9 +2,6 @@
 
 package-lock.json
 src/react-app-env.d.ts
-rollup.config.js
-.babelrc
-.npmignore
 
 # dependencies
 /node_modules
