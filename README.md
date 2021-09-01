@@ -15,7 +15,7 @@ Spectrogram is written in Typescript. Check types yourself [here](./src/Spectrog
 
 View source code of the following code [here](./examples/RandomExample.tsx).
 
-```jsx
+```TSX
 import React from "react";
 import { Spectrogram } from "react-spectrogram";
 
