@@ -1,6 +1,6 @@
 {
   "name": "react-spectrogram",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "React component that visualizes the spectrum of frequencies of a signal that varies with time - Spectrogram.",
   "author": {
     "name": "Jakub Švajka",
