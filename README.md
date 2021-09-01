@@ -5,6 +5,8 @@ Component is based on &lt;canvas&gt; tag. The shift operation was carefully chos
 
 <img src="./resources/randomExample.png" alt="RandomExample">
 
+Another example of spectrogram visualizing Digital Audio Broadcasting signal [here](./resources/dabExample.png).
+
 Feel free to share love at github by giving this project a star or creating a new issue if you have any problem or suggestion. Any feedback is valued.
 
 ## Usage
@@ -13,7 +15,7 @@ Spectrogram is written in Typescript. Check types yourself [here](./src/Spectrog
 
 View source code of the following code [here](./examples/RandomExample.tsx).
 
-```tsx
+```jsx
 import React from "react";
 import { Spectrogram } from "react-spectrogram";
 
@@ -75,7 +77,7 @@ export default RandomExample;
 ```
 
 ## Limitations
-* ❗ Argument *width* should be integer multiple of the length of the passed data *data.y* [\[2\]](https://html5rocks.com/en/tutorials/canvas/performance/#toc-avoid-float). The reason is that the size of one data point is determined by the division of the *width* of the canvas and the length of the *data.y* array. Result of this division must not be floating point! Otherwise canvas will be forced to use anti-aliasing filter to smooth out the lines and that means that the information coded in the color will be altered. When you see something like [this](./resources/incorrectWidthExample.png), you made a mistake (background color is seeping through).
+* ❗ Argument *width* should be integer multiple of the length of the passed data *data.y* [\[2\]](https://html5rocks.com/en/tutorials/canvas/performance/#toc-avoid-float). The reason is that the size of one data point is determined by the division of the *width* of the canvas and the length of the *data.y* array. If the result of this division is floating point then the canvas is forced to use anti-aliasing filter to smooth out the lines and that means that the information coded in the color will be altered. The example of this behaviour can be observed [here](./resources/incorrectWidthExample.png) (background color is seeping through). 
 * Properties *layout* and *options* should be constants. Otherwise it could lead to some unwanted results. The only property that should change is *data* property.
 * *heatmap.height* property should be integer multiple of the number of *displayBins*. (Basically same reason as above but not as critical)
 * no interactions nor animations
@@ -87,3 +89,9 @@ npm install --save react-spectrogram
 
 ## License
 This project is made available under the MIT License.
+
+## References
+\[1\] &nbsp; &nbsp; WHITMIRE, E. *High-performance Web-based Visualizations for Streaming Data*. Spring 2019, University of Washington. Available at: https://cse512-19s.github.io/FP-Signal-Viz/whitmire_paper.pdf
+
+\[2\] &nbsp; &nbsp; SMUS, B. *Improving HTML5 Canvas Performance*. August 2011, Available at: https://html5rocks.com/en/tutorials/canvas/performance/#toc-avoid-float
+
