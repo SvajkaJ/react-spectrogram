@@ -1,9 +1,9 @@
 import React from "react";
 
-import { ISpectrogramProps, SpectrogramDatumX } from "./Spectrogram.types";
-import { SpectrogramXAxis } from "./Spectrogram.types";
-import { SpectrogramYAxis } from "./Spectrogram.types";
-import { SpectrogramDatumZ, SpectrogramZAxis } from "./Spectrogram.types";
+import { ISpectrogramProps } from "./Spectrogram.types";
+import { SpectrogramDatumX, SpectrogramDatumZ} from "./Spectrogram.types";
+import { SpectrogramXAxis, SpectrogramYAxis, SpectrogramZAxis } from "./Spectrogram.types";
+
 
 const Spectrogram: React.FC<ISpectrogramProps> = ({
     data,
@@ -13,102 +13,114 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
     const lineCanvasRef = React.useRef<HTMLCanvasElement>(null);
     const heatmapCanvasRef = React.useRef<HTMLCanvasElement>(null);
 
-    const minYScaleValue = options.yAxis.values[0];
-    const maxYScaleValue = options.yAxis.values[options.yAxis.values.length - 1];
+    // Sanitize options prop
+    const opt = React.useMemo(() => {
+        const sortedValues = options.yAxis.values.sort((a, b) => a - b);
+        const minValue = sortedValues[0];
+        const maxValue = sortedValues[sortedValues.length - 1];
+        const range = maxValue - minValue;
+        return {
+            ...options,
+            yAxis: {
+                ...options.yAxis,
+                values: sortedValues,
+                maxValue: maxValue,
+                minValue: minValue,
+                range: range
+            }
+        };
+    }, [options]);
+    const optionsRef = React.useRef(opt);
+    optionsRef.current = opt;
 
-    const containerStyle: React.CSSProperties = {
-        paddingTop: layout?.paddingTop,
-        paddingRight: layout?.paddingRight,
-        paddingBottom: layout?.paddingBottom,
-        paddingLeft: layout?.paddingLeft
-    };
-
-    const lineContainerStyle: React.CSSProperties = {
-        position: "relative"
-    };
-
-    const heatmapContainerStyle: React.CSSProperties = {
-        position: "relative",
-        marginTop: layout.heatmap.marginTop
-    };
-
-    const heatmapCanvasStyle: React.CSSProperties = {
-        
-    };
-
-    const canvasStyle: React.CSSProperties = {
-        display: "block"
-    };
-
-    const scaleContainerStyle: React.CSSProperties = {
-
-    };
+    // Nothing to sanitize
+    const layoutRef = React.useRef(layout);
+    layoutRef.current = layout;
 
     // util function
-    const fillStyle: (x: number) => string = React.useMemo(() => {
+    // resolves the color according to theme
+    const colorRef = React.useRef<(p: number) => string>(() => "");
+    colorRef.current = React.useMemo(() => {
         switch(options?.theme) {
+            case "blue-green-red":
+                return (p: number) => {
+                    const t = 240;
+                    // blue:  hsl(240,100%,50%)
+                    // green: hsl(120,100%,50%)
+                    // red:   hsl(0,100%,50%)
+                    const x = t - p * t;
+                    return `hsl(${x},100%,50%)`;
+                };
             case "black-white":
-                return (x: number) => {
+                return (p: number) => {
+                    const t = 255;
+                    const x = p * t;
                     return `rgb(${x},${x},${x})`;
                 };
             case "white-black":
-                return (x: number) => {
-                    x = 255 - x;
+                return (p: number) => {
+                    const t = 255;
+                    const x = t - p * t;
                     return `rgb(${x},${x},${x})`;
                 };
             case "black-red":
-                return (x: number) => {
+                return (p: number) => {
+                    const t = 255;
+                    const x = p * t;
                     return `rgb(${x},0,0)`;
                 };
             case "black-green":
-                return (x: number) => {
+                return (p: number) => {
+                    const t = 255;
+                    const x = p * t;
                     return `rgb(0,${x},0)`;
                 };
             case "black-blue":
-                return (x: number) => {
+                return (p: number) => {
+                    const t = 255;
+                    const x = p * t;
                     return `rgb(0,0,${x})`;
                 };
             case "white-red":
-                return (x: number) => {
-                    x = 255 - x;
+                return (p: number) => {
+                    const t = 255;
+                    const x = t - p * t;
                     return `rgb(255,${x},${x})`;
                 };
             case "white-green":
-                return (x: number) => {
-                    x = 255 - x;
+                return (p: number) => {
+                    const t = 255;
+                    const x = t - p * t;
                     return `rgb(${x},255,${x})`;
                 };
             case "white-blue":
             default:
-                return (x: number) => {
-                    x = 255 - x;
+                return (p: number) => {
+                    const t = 255;
+                    const x = t - p * t;
                     return `rgb(${x},${x},255)`;
                 };
         }
     }, [options?.theme]);
 
-    // util function
-    const baseStyle: () => number  = React.useMemo(() => {
-        switch(options?.theme) {
-            case "black-white":
-                return () => 255;
-            case "white-black":
-                return () => 255;
-            case "black-red":
-                return () => 255;
-            case "black-green":
-                return () => 255;
-            case "black-blue":
-                return () => 255;
-            case "white-red":
-                return () => 255;
-            case "white-green":
-                return () => 255;
-            case "white-blue":
-            default:
-                return () => 255;
-        }
-    }, [options?.theme]);
+    const containerStyle: React.CSSProperties = {
+        paddingTop: layoutRef.current.paddingTop,
+        paddingRight: layoutRef.current.paddingRight,
+        paddingBottom: layoutRef.current.paddingBottom,
+        paddingLeft: layoutRef.current.paddingLeft
+    };
+    const lineContainerStyle: React.CSSProperties = {
+        position: "relative"
+    };
+    const heatmapContainerStyle: React.CSSProperties = {
+        position: "relative",
+        marginTop: layoutRef.current.heatmap.marginTop
+    };
+    const heatmapCanvasStyle: React.CSSProperties = {};
+    const canvasStyle: React.CSSProperties = {
+        display: "block"
+    };
+    const scaleContainerStyle: React.CSSProperties = {};
 
     // When new data arrive update charts
     React.useEffect(() => {
@@ -119,22 +131,22 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             if (ctx === null) return false;
 
             const dx = canvas.width / data.length;
-            const dk = canvas.height / maxYScaleValue;
+            const dk = canvas.height / optionsRef.current.yAxis.range;
             let x = dx / 2;
 
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.strokeStyle = fillStyle(baseStyle());
+            ctx.strokeStyle = colorRef.current(1);
             ctx.lineWidth = 1;
             ctx.lineCap = "round";
             ctx.lineJoin = "round";
 
             ctx.beginPath();
-            ctx.moveTo(x, (maxYScaleValue - data[0]) * dk);
+            ctx.moveTo(x, (optionsRef.current.yAxis.maxValue - data[0]) * dk);
             for (let value of data.slice(1)) {
                 x += dx;
-                ctx.lineTo(x, (maxYScaleValue - value) * dk);
+                ctx.lineTo(x, (optionsRef.current.yAxis.maxValue - value) * dk);
             }
             ctx.stroke();
 
@@ -151,7 +163,7 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             // https://stackoverflow.com/questions/58136632/fillrect-not-overlapping-exactly-when-float-numbers-are-used
             // https://html5rocks.com/en/tutorials/canvas/performance/#toc-avoid-float
             const dx = canvas.width / data.length;
-            const dy = layout.heatmap.height / options.zAxis.displayBins;
+            const dy = layoutRef.current.heatmap.height / optionsRef.current.zAxis.displayBins;
             let x = 0;
 
             /**
@@ -165,7 +177,7 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             ctx.drawImage(canvas, 0, dy);
 
             for (let value of data) {
-                ctx.fillStyle = fillStyle(value / maxYScaleValue * baseStyle());
+                ctx.fillStyle = colorRef.current((value - optionsRef.current.yAxis.minValue) / optionsRef.current.yAxis.range);
                 ctx.fillRect(x, 0, dx, dy);
                 x += dx;
             }
@@ -177,9 +189,8 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             drawLine(data.y);
             drawHeatmap(data.y);
         }
-    // Deliberatly missing dependencies: 'layout.heatmap.height', 'maxYScaleValue', and 'options.zAxis.displayBins'.
-    // eslint-disable-next-line
-    }, [data, fillStyle, baseStyle]);
+        // this can execute only when data changes!
+    }, [data]);
 
     const yScale: JSX.Element = React.useMemo(() => {
         const Xoffset = 5;
@@ -194,8 +205,9 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             <svg width={layout.width} height={layout.scale.height} overflow="visible" style={scaleStyle}>
                 <defs>
                     <linearGradient id="linearGradient">
-                        <stop offset="0%" stop-color={fillStyle(0)} />
-                        <stop offset="100%" stop-color={fillStyle(baseStyle())} />
+                        <stop offset="0%" stopColor={colorRef.current(0)} stopOpacity={1} />
+                        <stop offset="50%" stopColor={colorRef.current(0.5)} stopOpacity={1} />
+                        <stop offset="100%" stopColor={colorRef.current(1)} stopOpacity={1} />
                     </linearGradient>
                 </defs>
                 <rect fill="url('#linearGradient')" width={layout.width} height={layout.scale.height} />
@@ -205,51 +217,73 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
                     fill="black"
                     stroke="black"
                     textAnchor="start"
-                >{minYScaleValue}</text>
+                >{optionsRef.current.yAxis.minValue}</text>
                 <text
                     x={layout.width - Xoffset}
                     y={layout.scale.height + Yoffset}
                     fill="black"
                     stroke="black"
                     textAnchor="end"
-                >{maxYScaleValue}</text>
+                >{optionsRef.current.yAxis.maxValue}</text>
             </svg>
         );
-    }, [layout, fillStyle, baseStyle, minYScaleValue, maxYScaleValue]);
+    }, [layout]);
 
     return (
         <div style={containerStyle}>
         <div style={lineContainerStyle}>
-            <YAxis {...options.yAxis} width={layout.width} height={layout.line.height} />
+            <YAxis
+                width={layoutRef.current.width}
+                height={layoutRef.current.line.height}
+                min={optionsRef.current.yAxis.minValue}
+                max={optionsRef.current.yAxis.maxValue}
+                range={optionsRef.current.yAxis.range}
+                values={optionsRef.current.yAxis.values}
+                displayAxis={optionsRef.current.yAxis.displayAxis}
+                displayGrid={optionsRef.current.yAxis.displayGrid}
+                color={optionsRef.current.yAxis.color}
+            />
             <canvas
                 id="lineChart"
                 ref={lineCanvasRef}
-                width={layout.width}
-                height={layout.line.height}
+                width={layoutRef.current.width}
+                height={layoutRef.current.line.height}
                 style={{ ...canvasStyle }}
             ></canvas>
             <XAxis
-                {...options.xAxis}
-                width={layout.width}
-                height={layout.line.height}
+                width={layoutRef.current.width}
+                height={layoutRef.current.line.height}
+                values={optionsRef.current.xAxis.values}
                 x={data.x}
+                displayAxis={optionsRef.current.xAxis.displayAxis}
+                displayGrid={optionsRef.current.xAxis.displayGrid}
+                color={optionsRef.current.xAxis.color}
             />
         </div>
         <div style={heatmapContainerStyle}>
-            <ZAxis {...options.zAxis} z={data.z} width={layout.width} height={layout.heatmap.height} />
+            <ZAxis
+                width={layoutRef.current.width}
+                height={layoutRef.current.heatmap.height}
+                z={data.z}
+                displayBins={optionsRef.current.zAxis.displayBins}
+                displayAxis={optionsRef.current.zAxis.displayAxis}
+                color={optionsRef.current.zAxis.color}
+            />
             <canvas
                 id="heatmapChart"
                 ref={heatmapCanvasRef}
-                width={layout.width}
-                height={layout.heatmap.height}
+                width={layoutRef.current.width}
+                height={layoutRef.current.heatmap.height}
                 style={{ ...canvasStyle, ...heatmapCanvasStyle }}
             >Your browser does not support &lt;canvas&gt; tag element!</canvas>
             <XAxis
-                {...options.xAxis}
-                width={layout.width}
-                height={layout.heatmap.height}
+                width={layoutRef.current.width}
+                height={layoutRef.current.heatmap.height}
+                values={optionsRef.current.xAxis.values}
                 x={data.x}
+                displayAxis={optionsRef.current.xAxis.displayAxis}
                 displayGrid={false}
+                color={optionsRef.current.xAxis.color}
             />
         </div>
         <div style={scaleContainerStyle}>
@@ -265,7 +299,7 @@ interface XAxisProps extends SpectrogramXAxis {
     x: SpectrogramDatumX;
 }
 
-const XAxis = React.memo<XAxisProps>(({
+const XAxis: React.FC <XAxisProps> = ({
     width,
     height,
     values,
@@ -274,37 +308,61 @@ const XAxis = React.memo<XAxisProps>(({
     displayGrid = true,
     color = "black"
 }) => {
-    if (!displayAxis && !displayGrid) return (<></>);
-
     const strokeWidth = 0.25;
     const t = 5;     // tick size
 
-    const dx = width / x.length;
-    let pos: Array<number> = [];
-    x.forEach((v, i) => {
-        if (values.includes(v)) {
-            pos.push(i * dx + dx / 2);
-        }
-    });
+    const get_pos = (): Array<number> => {
+        const dx = width / x.length;
+        let pos: Array<number> = [];
+        x.forEach((v, i) => {
+            if (values.includes(v)) {
+                pos.push(i * dx + dx / 2);
+            }
+        });
+        return pos;
+    };
+    const pos = get_pos();
 
-    let gridLines: Array<JSX.Element> = [];
-    let axisLabels: JSX.Element[] = [];
-    let axisLines: JSX.Element[] = [];
-    pos.forEach((v, i) => {
-        if (displayGrid) {
-            gridLines.push(
-                <path key={v} d={`M ${v},${0} L ${v},${-height}`} />
-            );
-        }
+    const get_axisLines = (): Array<JSX.Element> => {
+        let axisLines: Array<JSX.Element> = [];
         if (displayAxis) {
-            axisLabels.push(
-                <text key={v} x={v} y={t + 15} textAnchor="middle">{values[i].toString()}</text>
-            );
-            axisLines.push(
-                <path key={v} d={`M ${v},0 L ${v},${t}`} />
-            );
+            pos.forEach((v, i) => {
+                axisLines.push(
+                    <path key={v} d={`M ${v},0 L ${v},${t}`} />
+                );
+            });
         }
-    });
+        return axisLines;
+    };
+    const axisLines = get_axisLines();
+
+    const get_axisLabels = (): Array<JSX.Element> => {
+        let axisLabels: Array<JSX.Element> = [];
+        if (displayAxis) {
+            pos.forEach((v, i) => {
+                axisLabels.push(
+                    <text key={v} x={v} y={t + 15} textAnchor="middle">{values[i].toString()}</text>
+                );
+            });
+        }
+        return axisLabels;
+    };
+    const axisLabels = get_axisLabels();
+
+    const get_gridLines = (): Array<JSX.Element> => {
+        let gridLines: Array<JSX.Element> = [];
+        if (displayGrid) {
+            pos.forEach((v, i) => {
+                gridLines.push(
+                    <path key={v} d={`M ${v},${0} L ${v},${-height}`} />
+                );
+            });
+        }
+        return gridLines;
+    };
+    const gridLines = get_gridLines();
+
+    if (!displayAxis && !displayGrid) return (<></>);
 
     return (
         <svg
@@ -319,52 +377,84 @@ const XAxis = React.memo<XAxisProps>(({
             <g fill={color} stroke={color}>{axisLabels}</g>
         </svg>
     );
-});
+/*}, (prevProps, nextProps) => (
+       prevProps.color !== nextProps.color
+    || prevProps.displayAxis !== nextProps.displayAxis
+    || prevProps.displayGrid !== nextProps.displayGrid
+    || prevProps.height !== nextProps.height
+    || prevProps.width !== nextProps.width
+    || prevProps.x !== nextProps.x
+    || prevProps.values !== nextProps.values
+));*/
+// hopeless
+};
+
 
 interface YAxisProps extends SpectrogramYAxis {
     width: number;
     height: number;
+    min: number;
+    max: number;
+    range: number;
 }
 
-const YAxis = React.memo<YAxisProps>(({
+const YAxis: React.FC<YAxisProps> = ({
     width,
     height,
+    min,
+    max,
+    range,
     values,
     displayAxis = true,
     displayGrid = true,
     color = "black"
 }) => {
-    if (!displayAxis && !displayGrid) return (<></>);
-
     const strokeWidth = 0.25;
     const w = 30;    // svg width
     const t = 5;     // tick width
-    const m = values[values.length - 1];
+    const scale = height / range;
 
     const pos: Array<number> = values.map((v) => {
-        return Math.floor(height - v * height / m);
+        return Math.floor(height - v * scale + min * scale);
     });
 
-    // create paths and texts
-    let gridLines: Array<JSX.Element> = [];
-    let axisLines: Array<JSX.Element> = [];
-    let axisLabels: Array<JSX.Element> = [];
-    pos.forEach((v, i) => {
-        if (displayGrid) {
-            gridLines.push(
-                <path key={v} d={`M ${w},${v} L ${width + w},${v}`} />
-            );
-        }
+    const axisLines: Array<JSX.Element> = React.useMemo(() => {
+        let axisLines: Array<JSX.Element> = [];
         if (displayAxis) {
-            axisLabels.push(
-                <text key={v} text-anchor="end" x={w - 2*t} y={v + 5}>{values[i]}</text>
-            );
-            axisLines.push(
-                <path key={v} d={`M ${w - t},${v} L ${w},${v}`} />
-            );
+            pos.forEach((v, i) => {
+                axisLines.push(
+                    <path key={v} d={`M ${w - t},${v} L ${w},${v}`} />
+                );
+            });
         }
-    });
+        return axisLines;
+    }, [pos, w, t, displayAxis]);
 
+    const axisLabels: Array<JSX.Element> = React.useMemo(() => {
+        let axisLabels: Array<JSX.Element> = [];
+        if (displayAxis) {
+            pos.forEach((v, i) => {
+                axisLabels.push(
+                    <text key={v} textAnchor="end" x={w - 2*t} y={v + 5}>{values[i]}</text>
+                );
+            });
+        }
+        return axisLabels;
+    }, [pos, t, w, values, displayAxis]);
+
+    const gridLines: Array<JSX.Element> = React.useMemo(() => {
+        let gridLines: Array<JSX.Element> = [];
+        if (displayGrid) {
+            pos.forEach((v, i) => {
+                gridLines.push(
+                    <path key={v} d={`M ${w},${v} L ${width + w},${v}`} />
+                );
+            });
+        }
+        return gridLines;
+    }, [pos, w, displayGrid, width]);
+
+    if (!displayAxis && !displayGrid) return (<></>);
     // width and height of yAxis is irrelevant because it is positioned abolutely
     return (
         <svg id="yAxis" overflow="visible" style={{ position: "absolute", left: -w }}>
@@ -373,7 +463,8 @@ const YAxis = React.memo<YAxisProps>(({
             <g fill={color} stroke={color}>{axisLabels}</g>
         </svg>
     );
-});
+};
+
 
 interface ZAxisProps extends SpectrogramZAxis {
     width: number;
@@ -381,7 +472,7 @@ interface ZAxisProps extends SpectrogramZAxis {
     z: SpectrogramDatumZ;
 }
 
-const ZAxis: React.FC<ZAxisProps> = ({
+const ZAxis = React.memo<ZAxisProps>(({
     width,
     height,
     z,
@@ -428,17 +519,17 @@ const ZAxis: React.FC<ZAxisProps> = ({
             switch(typeof l) {
                 case "object":
                     labels.push(
-                        <text key={`${i}-${l.toLocaleTimeString()}`} text-anchor="end" x={w - 2 * t} y={pos[i] + 5}>{l.toLocaleTimeString()}</text>
+                        <text key={`${i}-${l.toLocaleTimeString()}`} textAnchor="end" x={w - 2 * t} y={pos[i] + 5}>{l.toLocaleTimeString()}</text>
                     );
                     break;
                 case "string":
                     labels.push(
-                        <text key={`${i}-${l}`} text-anchor="end" x={w - 2 * t} y={pos[i] + 5}>{l}</text>
+                        <text key={`${i}-${l}`} textAnchor="end" x={w - 2 * t} y={pos[i] + 5}>{l}</text>
                     );
                     break;
                 case "number":
                     labels.push(
-                        <text key={`${i}-${l.toLocaleString()}`} text-anchor="end" x={w - 2 * t} y={pos[i] + 5}>{l.toLocaleString()}</text>
+                        <text key={`${i}-${l.toLocaleString()}`} textAnchor="end" x={w - 2 * t} y={pos[i] + 5}>{l.toLocaleString()}</text>
                     );
                     break;
                 default:
@@ -454,10 +545,10 @@ const ZAxis: React.FC<ZAxisProps> = ({
     // width and height of zAxis is irrelevant because it is positioned abolutely
     return (
         <svg id="zAxis" overflow="visible" style={{ position: "absolute", left: -w }}>
-            <g fill={color} stroke={color} stroke-width={4 * strokeWidth}>{axisLines}</g>
+            <g fill={color} stroke={color} strokeWidth={4 * strokeWidth}>{axisLines}</g>
             <g fill={color} stroke={color}>{axisLabels}</g>
         </svg>
     );
-};
+});
 
 export default Spectrogram;

@@ -41,7 +41,7 @@ export type SpectrogramZAxis = {
     displayAxis?: boolean;
     color?: string;
 };
-export type SpectrogramTheme = "white-red" | "white-green" | "white-blue" | "black-red" | "black-green" | "black-blue" | "black-white" | "white-black";
+export type SpectrogramTheme = "white-red" | "white-green" | "white-blue" | "black-red" | "black-green" | "black-blue" | "black-white" | "white-black" | "blue-green-red";
 export type SpectrogramOptions = {
     xAxis: SpectrogramXAxis;
     yAxis: SpectrogramYAxis;
