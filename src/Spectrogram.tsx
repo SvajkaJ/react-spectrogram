@@ -190,7 +190,7 @@ const Spectrogram: React.FC<ISpectrogramProps> = ({
             drawHeatmap(data.y);
         }
         // this can execute only when data changes!
-    }, [data]);
+    }, [data.x, data.y, data.z]);
 
     const yScale: JSX.Element = React.useMemo(() => {
         const Xoffset = 5;
